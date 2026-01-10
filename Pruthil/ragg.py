@@ -13,29 +13,13 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.settings import Settings
 from rich import print,markdown
 
-GROQ_API_KEY="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"
-LLAMA_CLOUD_API_KEY = "llx-GJXCWxH9uKD8mlc3MY8SpFKyje334wmJKER4OytMfUf6edPD"
-
 
 Settings.llm = Groq(model="openai/gpt-oss-120b",api_key =os.getenv("GROQ_API_KEY"))
-# Sanity check: This should print your torch version without error now
-print(f"Successfully loaded Torch: {torch.__version__}")
-
-
-# 3. Data Ingestion with Section Metadata
-def get_meta(file_path):
-    # Extracts parent folder name (e.g., 'about', 'services') for GPS-like routing
-    category = os.path.basename(os.path.dirname(file_path))
-    url = f"https://ldce.ac.in/{category}/{os.path.basename(file_path)}".rstrip(".md")
-    return {"category":category,"file_name": os.path.basename(file_path),"url":url}
-# Point this to your uploaded folder of MD files
-DATA_DIR = "root/"
-reader = SimpleDirectoryReader(input_dir=DATA_DIR, recursive=True,file_metadata=get_meta)
+DATA_DIR = "Pruthil/input"
+reader = SimpleDirectoryReader(input_dir=DATA_DIR, recursive=True)
 documents = reader.load_data()
 print(f"Loaded {len(documents)} documents from {DATA_DIR}")
-for doc in documents:
-    print(doc.metadata)
-documents[:2]  # Display first 2 documents for verification
+
 
 Settings.embed_model = HuggingFaceEmbedding(
     model_name="dunzhang/stella_en_1.5B_v5",
@@ -63,12 +47,11 @@ print(f"✅ Indexed {len(nodes)} chunks into ChromaDB on local.")
 vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 index = VectorStoreIndex.from_vector_store(vector_store)
 
-retriever = .as_retriever()
+# Create a retriever from the index
+retriever = index.as_retriever()
 print("✅ Retriever is set up and ready to go!")
 retrieved = retriever.retrieve("what are the courses offered at LDCE?")
 print(f"Retrieved {len(retrieved)} nodes for the query.")
 for node in retrieved:  
-    print(markdown.Markdown(f"**Source URL:** {node.metadata.get('url','N/A')}\n\n{node.get_text()}"))
-    
-  # Display first node for verification
-
+    print(markdown.Markdown(f"**Source URL:** \n\n{node.get_text()}"))
+print("✅ Displayed retrieved nodes.")

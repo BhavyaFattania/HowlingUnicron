@@ -13,6 +13,10 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.settings import Settings
 from rich import print,markdown
 
+GROQ_API_KEY="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"
+LLAMA_CLOUD_API_KEY = "llx-GJXCWxH9uKD8mlc3MY8SpFKyje334wmJKER4OytMfUf6edPD"
+
+
 Settings.llm = Groq(model="openai/gpt-oss-120b",api_key =os.getenv("GROQ_API_KEY"))
 # Sanity check: This should print your torch version without error now
 print(f"Successfully loaded Torch: {torch.__version__}")

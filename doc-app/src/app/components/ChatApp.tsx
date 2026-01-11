@@ -14,7 +14,6 @@ export default function ChatApp() {
   const { chats, loading, createChat, updateChat,deleteChat, togglePin} = useChats(user?.uid);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
-  // 🔑 LIFTED STATE (model config)
   const [temperature, setTemperature] = useState(0.7);
   const [webSearch, setWebSearch] = useState(false);
 

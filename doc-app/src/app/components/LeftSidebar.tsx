@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+
 import {
   MessageSquare,
   Plus,
@@ -21,14 +23,14 @@ export default function LeftSidebar({
   onTogglePin
 }: any) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
   const pinnedChats = chats.filter((c: any) => c.pinned);
   const recentChats = chats.filter((c: any) => !c.pinned);
+  const { logout } = useAuth();
+
 
   return (
     <div className="w-64 bg-black border-r border-gray-800 flex flex-col h-screen text-gray-300">
       
-      {/* New Chat Button */}
       <div className="p-4">
         <button
           onClick={onNewChat}
@@ -39,7 +41,6 @@ export default function LeftSidebar({
         </button>
       </div>
 
-      {/* Chat List */}
       <div className="flex-1 overflow-y-auto px-2 space-y-1">
         {pinnedChats.length > 0 && (
           <>
@@ -78,7 +79,6 @@ export default function LeftSidebar({
         ))}
       </div>
 
-      {/* Footer */}
       <div className="p-4 border-t border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
@@ -87,7 +87,10 @@ export default function LeftSidebar({
           <span className="text-sm text-gray-400">Account</span>
         </div>
 
-        <button className="text-gray-500 hover:text-red-400">
+        <button
+          onClick={logout}
+          className="text-gray-500 hover:text-red-400"
+        >
           <LogOut className="w-4 h-4" />
         </button>
       </div>
@@ -95,9 +98,7 @@ export default function LeftSidebar({
   );
 }
 
-/* ---------------------------------- */
-/* Chat Row                            */
-/* ---------------------------------- */
+
 
 function ChatRow({
   chat,
@@ -126,7 +127,6 @@ function ChatRow({
         <span className="truncate">{chat.title || "New Conversation"}</span>
       </button>
 
-      {/* Three dots */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -137,7 +137,6 @@ function ChatRow({
         <MoreVertical className="w-4 h-4" />
       </button>
 
-      {/* Dropdown */}
       {isMenuOpen && (
         <div className="absolute right-2 top-10 z-20 w-36 bg-gray-900 border border-gray-800 rounded-lg shadow-lg">
           <button

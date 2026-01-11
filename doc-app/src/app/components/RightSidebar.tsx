@@ -16,13 +16,11 @@ export default function RightSidebar({
   return (
     <div className="w-72 bg-black border-l border-gray-800 text-gray-300 flex flex-col h-screen p-6 hidden lg:flex">
       
-      {/* Header */}
       <div className="flex items-center gap-2 mb-8 text-indigo-400">
         <Settings className="w-5 h-5" />
         <h2 className="font-semibold text-lg">Model Config</h2>
       </div>
 
-      {/* Temperature Slider */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -50,7 +48,6 @@ export default function RightSidebar({
         </div>
       </div>
 
-      {/* Web Search Toggle */}
       <div className="mb-8 p-4 bg-gray-900 rounded-xl border border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

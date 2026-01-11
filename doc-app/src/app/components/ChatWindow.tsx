@@ -9,7 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { MessageSquarePlus } from "lucide-react";
 
 export default function ChatWindow({ chatId, onStartNewChat,onUpdateChat }: any) {
-  const { messages, addMessage } = useMessages(chatId);
+  const { messages, addMessage ,updateMessage} = useMessages(chatId);
   const { user } = useAuth();
 
   if (!chatId) {
@@ -24,7 +24,6 @@ export default function ChatWindow({ chatId, onStartNewChat,onUpdateChat }: any)
             transition-all duration-300
           "
         >
-          {/* Icon */}
           <div
             className="
               flex items-center justify-center
@@ -39,7 +38,6 @@ export default function ChatWindow({ chatId, onStartNewChat,onUpdateChat }: any)
             <MessageSquarePlus className="w-8 h-8 text-white" />
           </div>
 
-          {/* Text */}
           <div className="text-center space-y-1">
             <p className="text-base font-medium text-gray-200">
               New Chat
@@ -65,7 +63,7 @@ export default function ChatWindow({ chatId, onStartNewChat,onUpdateChat }: any)
     }
 
 
-    await addMessage({ role: "user", content: text });
+    await addMessage({ role: "user", content: text ,fileUrl});
 
     if (messages.length === 0) {
       const title = text
@@ -80,15 +78,26 @@ export default function ChatWindow({ chatId, onStartNewChat,onUpdateChat }: any)
       });
     }
 
-    const response = await sendToChatbot(text);
+    const thinkingMessage = {
+      role: "assistant",
+      content: "_Thinking…_",
+      isThinking: true,
+    };
+    const thinkingRef = await addMessage(thinkingMessage);
 
-    await addMessage({ role: "assistant", content: response.content });
+    if (thinkingRef) {
+      const response = await sendToChatbot(text, chatId, fileUrl);
+
+      await updateMessage(thinkingRef.id, {
+        content: response.answer,
+        isThinking: false,
+      });
+    }
   };
 
   return (
     <div className="flex-1 flex flex-col bg-[#0a0a0a] relative">
       
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center opacity-40">
@@ -106,7 +115,6 @@ export default function ChatWindow({ chatId, onStartNewChat,onUpdateChat }: any)
         )}
       </div>
 
-      {/* Input */}
       <div className="bg-[#0a0a0a] pb-2 pt-2 z-10">
         <ChatInput onSend={handleSend} />
       </div>

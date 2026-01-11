@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReAct Agent Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .status-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 13px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-indicator.online {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .status-indicator.offline {
+            background: #ef4444;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px dashed #667eea;
+        }
+
+        .upload-section h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #5568d3;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 10px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #059669;
+        }
+
+        .upload-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .conversations-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .conversations-list h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .conversation-item {
+            padding: 8px;
+            background: #f9fafb;
+            margin: 5px 0;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .conversation-item:hover {
+            background: #e5e7eb;
+        }
+
+        .conversation-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-rows: auto 1fr 200px;
+            gap: 20px;
+        }
+
+        /* Agent Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-top: 8px;
+        }
+
+        .metric-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Chat & Monitor Section */
+        .chat-monitor-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        .chat-panel, .monitor-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-user {
+            text-align: right;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message-user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-assistant .message-bubble {
+            background: white;
+            color: #1f2937;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-timestamp {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        /* Monitor Panel */
+        .monitor-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .monitor-step {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .monitor-step.retrieve {
+            border-left-color: #3b82f6;
+        }
+
+        .monitor-step.agent {
+            border-left-color: #8b5cf6;
+        }
+
+        .monitor-step.tool {
+            border-left-color: #10b981;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+
+        .step-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .step-badge.retrieve {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .step-badge.agent {
+            background: #ede9fe;
+            color: #6b21a8;
+        }
+
+        .step-badge.tool {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .step-content {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .step-metadata {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .sources-section {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .source-item {
+            padding: 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #10b981;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        #messageInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #sendBtn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #sendBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        #sendBtn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .selected-file {
+            font-size: 12px;
+            color: #667eea;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">🤖 ReAct Agent</div>
+            
+            <div class="status-card">
+                <h3>System Status</h3>
+                <div class="status-item">
+                    <span><span class="status-indicator" id="llamaStatus"></span>LlamaCloud</span>
+                    <span id="llamaText">--</span>
+                </div>
+                <div class="status-item">
+                    <span><span class="status-indicator" id="llmStatus"></span>Groq LLM</span>
+                    <span id="llmText">--</span>
+                </div>
+                <div class="status-item">
+                    <span><span class="status-indicator" id="searchStatus"></span>Web Search</span>
+                    <span id="searchText">--</span>
+                </div>
+                <div class="status-item">
+                    <span><span class="status-indicator" id="firebaseStatus"></span>Firebase</span>
+                    <span id="firebaseText">--</span>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <h3>📄 Upload Document</h3>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md,.xlsx,.csv,.pptx,.png,.jpg,.jpeg">
+                    <label for="fileInput" class="file-input-label">Choose File</label>
+                </div>
+                <div class="selected-file" id="selectedFile"></div>
+                <button class="upload-btn" id="uploadBtn" disabled>Upload to Index</button>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <div class="conversations-list">
+                <h3>💬 Conversations</h3>
+                <div id="conversationsList">
+                    <div class="conversation-item active" data-id="new">New Conversation</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">💬</div>
+                    <div class="metric-label">Total Messages</div>
+                    <div class="metric-value" id="totalMessages">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">🔍</div>
+                    <div class="metric-label">Web Searches</div>
+                    <div class="metric-value" id="webSearches">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">📚</div>
+                    <div class="metric-label">Sources Retrieved</div>
+                    <div class="metric-value" id="sourcesRetrieved">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-label">Active Agents</div>
+                    <div class="metric-value" id="activeAgents">0</div>
+                </div>
+            </div>
+
+            <!-- Chat & Monitor -->
+            <div class="chat-monitor-section">
+                <!-- Chat Panel -->
+                <div class="chat-panel">
+                    <div class="panel-header">
+                        <span>💬 Conversation</span>
+                        <span id="conversationId" style="font-size: 11px; opacity: 0.8;">--</span>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div style="text-align: center; color: #9ca3af; margin-top: 50px;">
+                            <p>👋 Welcome to the ReAct Agent Dashboard</p>
+                            <p style="font-size: 12px; margin-top: 10px;">Ask a question to get started</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monitor Panel -->
+                <div class="monitor-panel">
+                    <div class="panel-header">
+                        <span>🔍 Agent Monitor</span>
+                        <span id="monitorStatus" style="font-size: 11px; opacity: 0.8;">Idle</span>
+                    </div>
+                    <div class="monitor-content" id="monitorContent">
+                        <div style="text-align: center; color: #9ca3af; margin-top: 50px;">
+                            <p>🤖 Agent activity will appear here</p>
+                            <p style="font-size: 12px; margin-top: 10px;">Monitor retrieval, reasoning, and tool usage in real-time</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-controls">
+                    <div class="toggle-switch">
+                        <label class="switch">
+                            <input type="checkbox" id="enableSearch">
+                            <span class="slider"></span>
+                        </label>
+                        <span style="font-size: 14px; color: #4b5563;">Enable Web Search</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-left: 20px;">
+                        <label style="font-size: 14px; color: #4b5563;">Temperature:</label>
+                        <input type="range" id="temperatureSlider" min="0" max="2" step="0.1" value="0" 
+                               style="width: 120px; cursor: pointer;">
+                        <span id="temperatureValue" style="font-size: 14px; color: #667eea; font-weight: 600; min-width: 35px;">0.0</span>
+                    </div>
+                    <button onclick="clearConversation()" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-left: auto;">New Chat</button>
+                </div>
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Ask a question about your documents..." />
+                    <button id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'https://welcometofightclub-chatapp.hf.space';
+        let currentConversationId = null;
+        let metrics = {
+            totalMessages: 0,
+            webSearches: 0,
+            sourcesRetrieved: 0
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkHealth();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+            document.getElementById('uploadBtn').addEventListener('click', uploadFile);
+            
+            // Temperature slider
+            document.getElementById('temperatureSlider').addEventListener('input', (e) => {
+                document.getElementById('temperatureValue').textContent = parseFloat(e.target.value).toFixed(1);
+            });
+        }
+
+        // Health Check
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                updateStatus('llama', data.llamacloud_connected);
+                updateStatus('llm', data.llm_ready);
+                updateStatus('search', data.web_search_ready);
+                updateStatus('firebase', data.firebase_connected);
+                
+                document.getElementById('activeAgents').textContent = data.active_agents || 0;
+            } catch (error) {
+                console.error('Health check failed:', error);
+                updateStatus('llama', false);
+                updateStatus('llm', false);
+                updateStatus('search', false);
+                updateStatus('firebase', false);
+            }
+        }
+
+        function updateStatus(type, isOnline) {
+            const statusEl = document.getElementById(`${type}Status`);
+            const textEl = document.getElementById(`${type}Text`);
+            
+            if (isOnline) {
+                statusEl.className = 'status-indicator online';
+                textEl.textContent = 'Online';
+            } else {
+                statusEl.className = 'status-indicator offline';
+                textEl.textContent = 'Offline';
+            }
+        }
+
+        // Send Message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span>';
+            
+            // Add user message to chat
+            addMessage('user', message);
+            input.value = '';
+            
+            // Clear monitor for new query
+            document.getElementById('monitorContent').innerHTML = '';
+            document.getElementById('monitorStatus').textContent = 'Processing...';
+            
+            try {
+                const enableSearch = document.getElementById('enableSearch').checked;
+                const temperature = parseFloat(document.getElementById('temperatureSlider').value);
+                
+                const response = await fetch(`${API_BASE_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: message,
+                        enable_search: enableSearch,
+                        temperature: temperature,
+                        conversation_id: currentConversationId,
+                        user_id: 'dashboard_user',
+                        top_k: 5
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update conversation ID
+                    if (!currentConversationId) {
+                        currentConversationId = data.conversation_id;
+                        document.getElementById('conversationId').textContent = data.conversation_id.substring(0, 8) + '...';
+                    }
+                    
+                    // Display agent steps from backend
+                    if (data.agent_steps && data.agent_steps.length > 0) {
+                        data.agent_steps.forEach((step, idx) => {
+                            setTimeout(() => {
+                                addMonitorStep(step.type, step.title, step.content, step.metadata);
+                            }, idx * 300);
+                        });
+                    }
+                    
+                    // Add sources to monitor
+                    if (data.sources && data.sources.length > 0) {
+                        setTimeout(() => {
+                            addSourcesStep(data.sources);
+                        }, data.agent_steps.length * 300 + 300);
+                        metrics.sourcesRetrieved += data.sources.length;
+                        document.getElementById('sourcesRetrieved').textContent = metrics.sourcesRetrieved;
+                    }
+                    
+                    // Update web search metric
+                    if (data.used_web_search) {
+                        metrics.webSearches++;
+                        document.getElementById('webSearches').textContent = metrics.webSearches;
+                    }
+                    
+                    // Add assistant response
+                    setTimeout(() => {
+                        addMessage('assistant', data.answer);
+                        document.getElementById('monitorStatus').textContent = 'Complete ✓';
+                    }, (data.agent_steps.length + 1) * 300 + 500);
+                    
+                    // Update metrics
+                    metrics.totalMessages += 2;
+                    document.getElementById('totalMessages').textContent = metrics.totalMessages;
+                    
+                } else {
+                    addMessage('assistant', `Error: ${data.detail || 'Failed to get response'}`);
+                    document.getElementById('monitorStatus').textContent = 'Error ✗';
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessage('assistant', 'Sorry, there was an error processing your request.');
+                document.getElementById('monitorStatus').textContent = 'Error ✗';
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+            }
+        }
+
+        function addMessage(type, content) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">${content}</div>
+                <div class="message-timestamp">${timestamp}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addMonitorStep(type, title, content, metadata = {}) {
+            const monitorDiv = document.getElementById('monitorContent');
+            const stepDiv = document.createElement('div');
+            stepDiv.className = `monitor-step ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // Build metadata display
+            let metadataHTML = `<span>⏱️ ${timestamp}</span>`;
+            if (metadata.temperature !== undefined) {
+                metadataHTML += `<span>🌡️ Temp: ${metadata.temperature}</span>`;
+            }
+            if (metadata.num_chunks !== undefined) {
+                metadataHTML += `<span>📄 Chunks: ${metadata.num_chunks}</span>`;
+            }
+            if (metadata.context_length !== undefined) {
+                metadataHTML += `<span>📝 Context: ${metadata.context_length} chars</span>`;
+            }
+            
+            stepDiv.innerHTML = `
+                <div class="step-header">
+                    <span class="step-title">${title}</span>
+                    <span class="step-badge ${type}">${type}</span>
+                </div>
+                <div class="step-content">${content}</div>
+                <div class="step-metadata">
+                    ${metadataHTML}
+                </div>
+            `;
+            
+            monitorDiv.appendChild(stepDiv);
+            monitorDiv.scrollTop = monitorDiv.scrollHeight;
+        }
+
+        function addSourcesStep(sources) {
+            const monitorDiv = document.getElementById('monitorContent');
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'monitor-step retrieve';
+            
+            let sourcesHTML = '<div class="sources-section"><strong>Retrieved Sources:</strong>';
+            sources.forEach((source, idx) => {
+                const score = source.score ? `(Score: ${source.score.toFixed(3)})` : '';
+                sourcesHTML += `
+                    <div class="source-item">
+                        <strong>Source ${idx + 1}</strong> ${score}<br>
+                        ${source.text}
+                    </div>
+                `;
+            });
+            sourcesHTML += '</div>';
+            
+            stepDiv.innerHTML = `
+                <div class="step-header">
+                    <span class="step-title">Sources Retrieved</span>
+                    <span class="step-badge retrieve">${sources.length} found</span>
+                </div>
+                ${sourcesHTML}
+            `;
+            
+            monitorDiv.appendChild(stepDiv);
+            monitorDiv.scrollTop = monitorDiv.scrollHeight;
+        }
+
+        function clearConversation() {
+            currentConversationId = null;
+            document.getElementById('chatMessages').innerHTML = `
+                <div style="text-align: center; color: #9ca3af; margin-top: 50px;">
+                    <p>👋 New conversation started</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Ask a question to get started</p>
+                </div>
+            `;
+            document.getElementById('monitorContent').innerHTML = `
+                <div style="text-align: center; color: #9ca3af; margin-top: 50px;">
+                    <p>🤖 Agent activity will appear here</p>
+                </div>
+            `;
+            document.getElementById('conversationId').textContent = '--';
+            document.getElementById('monitorStatus').textContent = 'Idle';
+        }
+
+        // File Upload
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('selectedFile').textContent = `Selected: ${file.name}`;
+                document.getElementById('uploadBtn').disabled = false;
+            }
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const uploadBtn = document.getElementById('uploadBtn');
+            const statusDiv = document.getElementById('uploadStatus');
+            
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            statusDiv.innerHTML = '';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('user_id', 'dashboard_user');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = `<div class="success-message">✓ ${file.name} uploaded successfully!</div>`;
+                    fileInput.value = '';
+                    document.getElementById('selectedFile').textContent = '';
+                } else {
+                    statusDiv.innerHTML = `<div class="error-message">✗ Upload failed: ${data.detail}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                statusDiv.innerHTML = `<div class="error-message">✗ Upload failed: ${error.message}</div>`;
+            } finally {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Upload to Index';
+            }
+        }
+    </script>
+</body>
+</html>
